@@ -1,18 +1,35 @@
 const mongoose = require('mongoose');
 
-// Tạo schema lưu trạng thái thanh toán của một đơn hàng
 const PaymentStatusSchema = new mongoose.Schema({
-    // Tham chiếu đến đơn hàng đang được thanh toán
-    order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
+    order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
 
-    // Trạng thái thanh toán: unpaid (chưa thanh toán), paid (đã thanh toán), failed (thất bại)
-    status: { type: String, enum: ['unpaid', 'paid', 'failed'], default: 'unpaid' },
+    status: { 
+        type: String, 
+        enum: ['unpaid', 'paid', 'failed'], 
+        default: 'unpaid' 
+    },
 
-    // Phương thức thanh toán mà người dùng chọn: momo, vnpay, paypal, hoặc thẻ tín dụng
-    paymentMethod: { type: String, enum: ['momo', 'vnpay', 'paypal', 'credit_card'] }
+    paymentMethod: { 
+        type: String, 
+        enum: ['momo', 'vnpay', 'paypal', 'credit_card'], 
+        required: true 
+    },
+
+    // Mã giao dịch từ cổng thanh toán
+    transactionId: { type: String },
+
+    // Số tiền đã thanh toán
+    amount: { type: Number },
+
+    // Đơn vị tiền tệ
+    currency: { type: String, default: 'VND' },
+
+    // Thời gian hoàn tất thanh toán
+    paymentTime: { type: Date },
+
+    // Thông báo lỗi từ cổng thanh toán (nếu thất bại)
+    errorMessage: { type: String }
     
-    // timestamps: tự động thêm trường createdAt và updatedAt
 }, { timestamps: true });
 
-// Xuất model để sử dụng trong ứng dụng
 module.exports = mongoose.model('PaymentStatus', PaymentStatusSchema);
