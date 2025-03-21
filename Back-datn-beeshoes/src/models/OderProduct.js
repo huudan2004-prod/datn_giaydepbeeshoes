@@ -1,41 +1,57 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const orderSchema = new mongoose.Schema({
-  orderIteams: [
-    {
-      name: { type: String, required: true },
-      amount: { type: Number, required: true },
-      image: { type: String, required: true },
-      price: { type: Number, required: true },
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true,
-      },
+const OrderSchema = new mongoose.Schema({
+    // Người đặt hàng (user), tham chiếu đến bảng User
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
+    // Danh sách các sản phẩm trong đơn hàng
+    items: [{
+        product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },  // ID sản phẩm
+        variant: {
+            color: String,  // Màu sắc sản phẩm
+            size: String    // Kích thước sản phẩm
+        },
+        quantity: Number,    // Số lượng sản phẩm
+        price: Number        // Giá của sản phẩm tại thời điểm mua (để không bị ảnh hưởng khi giá thay đổi sau này)
+    }],
+
+    // Trạng thái đơn hàng
+    status: { 
+        type: String, 
+        enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'], 
+        default: 'pending' 
     },
-  ],
-  shippingAddress: {
-    fullName: { type: String, required: true },
-    address: { type: String, required: true },
-    city: { type: String, required: true },
-    // country: { type: String, required: true },
-    phone: { type: Number, required: true },
-  },
-  paymentMethod: { type: String, required: true },
-  itemsPrice: { type: Number, required: true },
-  shippingPrice: { type: Number, required: true },
-  taxPrice: { type: Number, required: true },
-  totalPrice: { type: Number, required: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  isPaid: { type: Boolean, default: false },
-  paidAt: { type: Date },
-  isDelivered: { type: Boolean, default: false },
-  delivereAt: { type: Date },
-},
-{
-    timestamps: true,
-}
-);
 
-const Order = mongoose.model('Order', orderSchema);
-module.exports = Order;
+    // Trạng thái thanh toán
+    paymentStatus: { 
+        type: String, 
+        enum: ['unpaid', 'paid', 'failed'], 
+        default: 'unpaid' 
+    },
+
+    // Địa chỉ giao hàng (lưu riêng để phòng trường hợp người dùng đặt địa chỉ khác)
+    shippingAddress: { 
+        type: String, 
+        required: true 
+    },
+
+    // Số điện thoại liên hệ giao hàng
+    phone: { 
+        type: String, 
+        required: true 
+    },
+
+    // Mã voucher đã sử dụng (nếu có)
+    voucherCode: { 
+        type: String 
+    },
+
+    // Tổng tiền đơn hàng (có thể tính ra từ items và trừ giảm giá)
+    totalPrice: { 
+        type: Number, 
+        required: true 
+    }
+
+}, { timestamps: true }); // Tự động thêm createdAt và updatedAt
+
+module.exports = mongoose.model('Order', OrderSchema);
